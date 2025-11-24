@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>لعبة التصويب السريعة 🎯</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg1: #020617;
+      --bg2: #0f172a;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.18);
+      --accent-strong: #16a34a;
+      --danger: #f97373;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --card-bg: rgba(15, 23, 42, 0.92);
+      --card-border: rgba(148, 163, 184, 0.5);
+      --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.9);
+      --radius-xl: 22px;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #020617 0, #020617 40%, #000 100%);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 12px;
+    }
+
+    .page-wrapper {
+      max-width: 960px;
+      width: 100%;
+    }
+
+    /* ===== Header ===== */
+    .main-header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .main-header h1 {
+      margin: 0 0 4px;
+      font-size: 26px;
+      letter-spacing: 0.05em;
+    }
+
+    .main-header p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ===== Layout ===== */
+    .game-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-soft);
+      padding: 18px 18px 16px;
+      backdrop-filter: blur(24px);
+    }
+
+    .top-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      row-gap: 6px;
+      font-size: 13px;
+    }
+
+    .stat-pill {
+      background: rgba(30, 64, 175, 0.25);
+      border-radius: 999px;
+      padding: 6px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .stat-value {
+      font-weight: 600;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #ecfdf5;
+      box-shadow: 0 10px 28px rgba(34, 197, 94, 0.7);
+    }
+
+    .btn-primary:hover:enabled {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 64, 175, 0.28);
+      color: #bfdbfe;
+      border: 1px solid rgba(129, 140, 248, 0.5);
+    }
+
+    .btn-secondary:hover:enabled {
+      filter: brightness(1.05);
+      transform: translateY(-0.5px);
+    }
+
+    /* ===== Game area ===== */
+    .game-area-wrapper {
+      margin-top: 8px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      padding: 10px;
+      background: radial-gradient(circle at top, #020617 10%, #020617 70%);
+    }
+
+    .game-area {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #0b1220, #020617);
+      height: 340px;
+      cursor: crosshair;
+      user-select: none;
+    }
+
+    .game-area::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.16;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.25) 0, transparent 55%),
+        radial-gradient(circle at 80% 80%, rgba(129, 140, 248, 0.23) 0, transparent 55%);
+      pointer-events: none;
+    }
+
+    .hint {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      pointer-events: none;
+      padding: 0 18px;
+      z-index: 1;
+    }
+
+    .hint span {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 999px;
+      padding: 8px 16px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      backdrop-filter: blur(20px);
+    }
+
+    .target {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #bbf7d0, #16a34a);
+      box-shadow: 0 10px 26px rgba(34, 197, 94, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translate(-50%, -50%);
+      transition: transform 0.16s ease-out;
+      z-index: 2;
+    }
+
+    .target::before {
+      content: "";
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: 2px solid rgba(22, 163, 74, 0.35);
+      box-shadow: 0 0 0 1px rgba(21, 128, 61, 0.7);
+    }
+
+    .target.disabled {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hit-flash {
+      animation: flash 0.14s ease-out;
+    }
+
+    @keyframes flash {
+      from {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.9);
+      }
+      to {
+        box-shadow: 0 0 0 18px rgba(34, 197, 94, 0);
+      }
+    }
+
+    .toast {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      min-height: 18px;
+    }
+
+    .toast.positive {
+      color: #bbf7d0;
+    }
+
+    .toast.negative {
+      color: var(--danger);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 720px) {
+      .game-card {
+        padding: 14px 12px 12px;
+      }
+
+      .top-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .controls {
+        justify-content: flex-start;
+      }
+
+      .game-area {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="main-header">
+      <h1>لعبة التصويب السريعة 🎯</h1>
+      <p>اضغط على الهدف الأخضر بأسرع ما يمكن قبل انتهاء الوقت!</p>
+    </header>
+
+    <main class="game-card">
+      <div class="top-row">
+        <div class="stats">
+          <div class="stat-pill">
+            <span class="stat-label">⏱ الوقت:</span>
+            <span class="stat-value" id="time-value">30</span>
+            <span class="stat-label">ث</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">⭐ النقاط:</span>
+            <span class="stat-value" id="score-value">0</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">🏆 أفضل نتيجة:</span>
+            <span class="stat-value" id="best-value">0</span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="start-btn" class="btn-primary">
+            ▶️ ابدأ اللعب
+          </button>
+          <button id="reset-btn" class="btn-secondary" disabled>
+            🔄 إعادة تعيين
+          </button>
+        </div>
+      </div>
+
+      <div class="game-area-wrapper">
+        <div class="game-area" id="game-area">
+          <div class="hint" id="hint">
+            <span>اضغط على زر <strong>ابدأ اللعب</strong> ثم حاول ضرب الدائرة الخضراء بأسرع ما يمكن ✨</span>
+          </div>
+          <div class="target disabled" id="target"></div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+    </main>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById("start-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const timeValue = document.getElementById("time-value");
+    const scoreValue = document.getElementById("score-value");
+    const bestValue = document.getElementById("best-value");
+    const toast = document.getElementById("toast");
+
+    const gameArea = document.getElementById("game-area");
+    const target = document.getElementById("target");
+    const hint = document.getElementById("hint");
+
+    let isPlaying = false;
+    let timeLeft = 30;
+    let score = 0;
+    let bestScore = 0;
+    let timerId = null;
+
+    // تحميل أفضل نتيجة من التخزين المحلي إن وجدت
+    if (window.localStorage) {
+      const storedBest = localStorage.getItem("aimGameBestScore");
+      if (storedBest !== null) {
+        bestScore = parseInt(storedBest, 10) || 0;
+        bestValue.textContent = bestScore;
+      }
+    }
+
+    function updateUI() {
+      timeValue.textContent = timeLeft;
+      scoreValue.textContent = score;
+      bestValue.textContent = bestScore;
+    }
+
+    function showToast(message, type = "") {
+      toast.textContent = message;
+      toast.classList.remove("positive", "negative");
+      if (type === "positive") toast.classList.add("positive");
+      if (type === "negative") toast.classList.add("negative");
+    }
+
+    function moveTarget() {
+      const areaRect = gameArea.getBoundingClientRect();
+      const size = target.offsetWidth || 70;
+
+      const padding = 20;
+      const minX = padding;
+      const maxX = areaRect.width - padding;
+      const minY = padding;
+      const maxY = areaRect.height - padding;
+
+      const randomX = Math.random() * (maxX - minX) + minX;
+      const randomY = Math.random() * (maxY - minY) + minY;
+
+      target.style.left = randomX + "px";
+      target.style.top = randomY + "px";
+    }
+
+    function startGame() {
+      if (isPlaying) return;
+
+      isPlaying = true;
+      timeLeft = 30;
+      score = 0;
+      updateUI();
+      showToast("💡 اضرب الهدف بأسرع ما يمكن!", "");
+
+      hint.style.display = "none";
+      target.classList.remove("disabled");
+      moveTarget();
+
+      startBtn.disabled = true;
+      resetBtn.disabled = false;
+
+      if (timerId) clearInterval(timerId);
+      timerId = setInterval(() => {
+        if (!isPlaying) return;
+        timeLeft--;
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          endGame();
+        }
+        updateUI();
+      }, 1000);
+    }
+
+    function endGame() {
+      isPlaying = false;
+      startBtn.disabled = false;
+      target.classList.add("disabled");
+      clearInterval(timerId);
+
+      if (score > bestScore) {
+        bestScore = score;
+        if (window.localStorage) {
+          localStorage.setItem("aimGameBestScore", String(bestScore));
+        }
+        showToast(`🔥 ممتاز! رقم قياسي جديد: ${score} نقطة`, "positive");
+      } else {
+        showToast(`⌛ انتهى الوقت! مجموع نقاطك: ${score}`, "negative");
+      }
+      updateUI();
+    }
+
+    function resetGame() {
+      clearInterval(timerId);
+      isPlaying = false;
+      timeLeft = 30;
+      score = 0;
+      updateUI();
+
+      target.classList.add("disabled");
+      hint.style.display = "flex";
+
+      startBtn.disabled = false;
+      resetBtn.disabled = true;
+
+      showToast("تمت إعادة تعيين اللعبة. اضغط ابدأ اللعب من جديد.");
+    }
+
+    // حدث الضغط على الهدف
+    target.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!isPlaying) return;
+
+      score++;
+      updateUI();
+
+      target.classList.remove("hit-flash");
+      // لإعادة تشغيل الأنيميشن
+      void target.offsetWidth;
+      target.classList.add("hit-flash");
+
+      moveTarget();
+    });
+
+    // لو ضغط على منطقة اللعب بدون إصابة الهدف (اختياري: ممكن مستقبلاً تخصم نقاط)
+    gameArea.addEventListener("click", () => {
+      if (!isPlaying) return;
+      // حاب تخليها تخصم؟:
+      // if (score > 0) score--;
+      // updateUI();
+    });
+
+    startBtn.addEventListener("click", startGame);
+    resetBtn.addEventListener("click", resetGame);
+  </script>
+</body>
+</html>
