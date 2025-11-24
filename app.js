@@ -193,3 +193,5 @@ downloadBtn.addEventListener("click", () => {
   link.href = resultCanvas.toDataURL("image/png");
   link.click();
 });
+
+
